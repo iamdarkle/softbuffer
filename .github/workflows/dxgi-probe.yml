@@ -25,10 +25,23 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - uses: hecrj/setup-rust-action@v2
+      if: matrix.os != 'windows-11-arm'
       with:
         rust-version: stable
         targets: ${{ matrix.target }}
         components: clippy
+    - name: Install Rust on arm64
+      if: matrix.os == 'windows-11-arm'
+      shell: bash
+      run: |
+        if ! command -v rustup; then
+          curl -sSf -o rustup-init.exe https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe
+          ./rustup-init.exe -y --default-toolchain none --profile minimal
+          cygpath -w "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.cargo/bin:$PATH"
+        fi
+        rustup toolchain install stable --profile minimal --component clippy --target ${{ matrix.target }}
+        rustup default stable
     - name: Tests, as upstream CI runs them
       shell: bash
       run: cargo test --verbose --target ${{ matrix.target }} --lib

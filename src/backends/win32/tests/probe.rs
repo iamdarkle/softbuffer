@@ -534,8 +534,8 @@ fn probe_device_cost() {
                 false,
             )));
             let t = Instant::now();
-            let context = Context::new(&*window).unwrap();
-            let mut surface = Surface::new(&context, &*window).unwrap();
+            let context = Context::new(window).unwrap();
+            let mut surface = Surface::new(&context, window).unwrap();
             let created = t.elapsed();
             if gdi {
                 *presenter(&mut surface) = Presenter::Gdi(GdiPresenter::new(window.0).unwrap());
@@ -697,6 +697,20 @@ fn probe_window_kinds() {
     thread::sleep(Duration::from_millis(300));
     println!(
         "  smaller frame: inside {:06x}, outside {:06x}",
+        sample(&window, 20, 20),
+        sample(&window, WIDTH - 20, HEIGHT - 20)
+    );
+    let window = ProbeWindow::new(WIDTH, HEIGHT, 0, ptr::null_mut(), false);
+    let context = Context::new(&window).unwrap();
+    let mut surface = Surface::new(&context, &window).unwrap();
+    *presenter(&mut surface) = Presenter::Gdi(GdiPresenter::new(window.0).unwrap());
+    surface.resize(NonZeroU32::new(WIDTH / 2).unwrap(), NonZeroU32::new(HEIGHT / 2).unwrap()).unwrap();
+    let mut buffer = surface.next_buffer().unwrap();
+    fill(&mut buffer, RED);
+    buffer.present().unwrap();
+    thread::sleep(Duration::from_millis(300));
+    println!(
+        "  smaller frame with GDI: inside {:06x}, outside {:06x}",
         sample(&window, 20, 20),
         sample(&window, WIDTH - 20, HEIGHT - 20)
     );
