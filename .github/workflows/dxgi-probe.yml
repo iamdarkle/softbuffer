@@ -1,0 +1,44 @@
+name: DXGI probe
+
+on:
+  push:
+    branches: [dxgi-probe]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: ${{ matrix.os }} ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+          - { os: windows-latest, target: i686-pc-windows-msvc }
+          - { os: windows-2022, target: x86_64-pc-windows-msvc }
+          - { os: windows-11-arm, target: aarch64-pc-windows-msvc }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      RUST_BACKTRACE: 1
+      CARGO_INCREMENTAL: 0
+      RUSTFLAGS: "-C debuginfo=0 --deny warnings"
+    steps:
+    - uses: actions/checkout@v6
+    - uses: hecrj/setup-rust-action@v2
+      with:
+        rust-version: stable
+        targets: ${{ matrix.target }}
+        components: clippy
+    - name: Tests, as upstream CI runs them
+      shell: bash
+      run: cargo test --verbose --target ${{ matrix.target }} --lib
+    - name: Probe
+      shell: bash
+      run: cargo test --target ${{ matrix.target }} --lib probe -- --ignored --nocapture --test-threads=1
+    - name: Window tests five more times
+      shell: bash
+      run: |
+        for i in 1 2 3 4 5; do cargo test --target ${{ matrix.target }} --lib backends::win32::tests:: || exit 1; done
+    - name: Clippy
+      shell: bash
+      run: cargo clippy --all-targets --target ${{ matrix.target }} -- -Dwarnings

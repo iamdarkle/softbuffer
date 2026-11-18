@@ -23,6 +23,8 @@ use super::{GdiPresenter, Presenter};
 use crate::backend_dispatch::SurfaceDispatch;
 use crate::{Context, Pixel, Rect, Surface};
 
+mod probe;
+
 /// Asks DWM for the window as it composes it, swap chains included.
 const PW_RENDERFULLCONTENT: u32 = 2;
 

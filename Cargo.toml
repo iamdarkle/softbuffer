@@ -192,7 +192,7 @@ criterion = { version = "0.8.1", default-features = false, features = [
 
 [target.'cfg(target_os = "windows")'.dev-dependencies]
 # Read back what a window shows in tests.
-windows-sys = { version = "0.61.2", features = ["Win32_Storage_Xps"] }
+windows-sys = { version = "0.61.2", features = ["Win32_Storage_Xps", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
 
 [target.'cfg(target_os = "android")'.dev-dependencies]
 # Use NativeActivity on Android.

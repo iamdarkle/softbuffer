@@ -27,6 +27,12 @@ use windows_sys::Win32::System::LibraryLoader::{
 use self::ffi::*;
 use crate::{Pixel, Rect, SoftBufferError};
 
+#[cfg(test)]
+pub static LAST_PRESENT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+#[cfg(test)]
+pub static IGNORE_OCCLUSION: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 /// A window's swap chain, with the device that copies frames into it.
 #[derive(Debug)]
 pub struct Presenter {
@@ -430,6 +436,8 @@ impl Presenter {
         // `DXGI_STATUS_OCCLUDED` means that the window isn't visible, not that the present failed.
         check(result, "failed to present")?;
         frame.present_whole_frame = false;
+        #[cfg(test)]
+        LAST_PRESENT.store(result, std::sync::atomic::Ordering::Relaxed);
         frame.presented = true;
         self.presented = true;
         Ok(())
